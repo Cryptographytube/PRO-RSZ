@@ -85,42 +85,8 @@ def select_vulnerabilities():
     print("5. Dust Flooding")
     print("6. Unusually High Fee")
     print("7. Address Reuse")
-    print("8. Reused R-Value or Script Duplicates")
     selected = input("Enter your choices: ")
     return set(map(int, selected.split(',')))
-
-# Function to check for reused R values or script duplicates in a transaction
-def check_r_reuse_in_tx(tx):
-    inputs = [inp['scriptSig']['asm'] for inp in tx.get('inputs', []) if 'scriptSig' in inp and 'asm' in inp['scriptSig']]
-    outputs = [out['script'] for out in tx.get('out', []) if 'script' in out]
-    all_scripts = inputs + outputs
-    
-    try:
-        r_values = [script.split()[1] for script in all_scripts if len(script.split()) > 1]
-        
-        duplicates = {}
-        for idx, r in enumerate(r_values):
-            if r in duplicates:
-                duplicates[r].append(idx)
-            else:
-                duplicates[r] = [idx]
-        
-        reused_r = {r: idx_list for r, idx_list in duplicates.items() if len(idx_list) > 1}
-        
-        # Check for duplicate scripts
-        script_duplicates = {}
-        for idx, script in enumerate(all_scripts):
-            if script in script_duplicates:
-                script_duplicates[script].append(idx)
-            else:
-                script_duplicates[script] = [idx]
-        
-        reused_scripts = {script: idx_list for script, idx_list in script_duplicates.items() if len(idx_list) > 1}
-        
-        return reused_r, reused_scripts
-    except Exception as e:
-        print(f"Error processing transaction {tx['hash']}: {e}. Skipping this transaction.")
-        return None, None
 
 # Function to check vulnerabilities in a transaction
 def check_vulnerabilities(transaction, all_transactions, selected_vulnerabilities):
@@ -171,14 +137,6 @@ def check_vulnerabilities(transaction, all_transactions, selected_vulnerabilitie
             if address and address in seen_addresses:
                 vulnerabilities.add(f"Address Reuse (Address {address} Reused)")
             seen_addresses.add(address)
-
-    # 8. Reused R-Value or Script Duplicates
-    if 8 in selected_vulnerabilities:
-        reused_r, reused_scripts = check_r_reuse_in_tx(transaction)
-        if reused_r:
-            vulnerabilities.add("Reused R-Value Detected")
-        if reused_scripts:
-            vulnerabilities.add("Script Duplicates Detected")
 
     return list(vulnerabilities)
 
