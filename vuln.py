@@ -85,19 +85,18 @@ def select_vulnerabilities():
     print("5. Dust Flooding")
     print("6. Unusually High Fee")
     print("7. Address Reuse")
-    print("8. ASM Hex Reuse")
-    print("9. Reused R-Value or Script Duplicates")
+    print("8. Reused R-Value or Script Duplicates")
     selected = input("Enter your choices: ")
     return set(map(int, selected.split(',')))
 
 # Function to check for reused R values or script duplicates in a transaction
 def check_r_reuse_in_tx(tx):
-    inputs = [inp['scriptSig']['hex'] for inp in tx.get('inputs', []) if 'scriptSig' in inp and 'hex' in inp['scriptSig']]
+    inputs = [inp['scriptSig']['asm'] for inp in tx.get('inputs', []) if 'scriptSig' in inp and 'asm' in inp['scriptSig']]
     outputs = [out['script'] for out in tx.get('out', []) if 'script' in out]
     all_scripts = inputs + outputs
     
     try:
-        r_values = [script[10:74] for script in all_scripts if len(script) > 74]
+        r_values = [script.split()[1] for script in all_scripts if len(script.split()) > 1]
         
         duplicates = {}
         for idx, r in enumerate(r_values):
@@ -173,16 +172,8 @@ def check_vulnerabilities(transaction, all_transactions, selected_vulnerabilitie
                 vulnerabilities.add(f"Address Reuse (Address {address} Reused)")
             seen_addresses.add(address)
 
-    # 8. ASM Hex Reuse
+    # 8. Reused R-Value or Script Duplicates
     if 8 in selected_vulnerabilities:
-        asm_hex = transaction.get('asm', None)
-        if asm_hex:
-            for existing_tx in all_transactions:
-                if existing_tx.get('asm') == asm_hex:
-                    vulnerabilities.add("ASM Hex Reuse (Same ASM Hex Detected in Another Transaction)")
-
-    # 9. Reused R-Value or Script Duplicates
-    if 9 in selected_vulnerabilities:
         reused_r, reused_scripts = check_r_reuse_in_tx(transaction)
         if reused_r:
             vulnerabilities.add("Reused R-Value Detected")
