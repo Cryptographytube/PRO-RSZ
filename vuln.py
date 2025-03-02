@@ -92,7 +92,7 @@ def select_vulnerabilities():
 
 # Function to check for reused R values or script duplicates in a transaction
 def check_r_reuse_in_tx(tx):
-    inputs = [inp['script'] for inp in tx.get('inputs', []) if 'script' in inp]
+    inputs = [inp['scriptSig']['hex'] for inp in tx.get('inputs', []) if 'scriptSig' in inp and 'hex' in inp['scriptSig']]
     outputs = [out['script'] for out in tx.get('out', []) if 'script' in out]
     all_scripts = inputs + outputs
     
@@ -107,10 +107,21 @@ def check_r_reuse_in_tx(tx):
                 duplicates[r] = [idx]
         
         reused_r = {r: idx_list for r, idx_list in duplicates.items() if len(idx_list) > 1}
-        return reused_r
+        
+        # Check for duplicate scripts
+        script_duplicates = {}
+        for idx, script in enumerate(all_scripts):
+            if script in script_duplicates:
+                script_duplicates[script].append(idx)
+            else:
+                script_duplicates[script] = [idx]
+        
+        reused_scripts = {script: idx_list for script, idx_list in script_duplicates.items() if len(idx_list) > 1}
+        
+        return reused_r, reused_scripts
     except Exception as e:
         print(f"Error processing transaction {tx['hash']}: {e}. Skipping this transaction.")
-        return None
+        return None, None
 
 # Function to check vulnerabilities in a transaction
 def check_vulnerabilities(transaction, all_transactions, selected_vulnerabilities):
@@ -172,9 +183,11 @@ def check_vulnerabilities(transaction, all_transactions, selected_vulnerabilitie
 
     # 9. Reused R-Value or Script Duplicates
     if 9 in selected_vulnerabilities:
-        reused_r = check_r_reuse_in_tx(transaction)
+        reused_r, reused_scripts = check_r_reuse_in_tx(transaction)
         if reused_r:
-            vulnerabilities.add("Reused R-Value or Script Duplicates Detected")
+            vulnerabilities.add("Reused R-Value Detected")
+        if reused_scripts:
+            vulnerabilities.add("Script Duplicates Detected")
 
     return list(vulnerabilities)
 

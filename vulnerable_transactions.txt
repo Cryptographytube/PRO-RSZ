@@ -1,3 +1,0 @@
-[CRYPTOGRAPHYTUBE] Transaction ID: f4a97da70b7a2c3ad765b59c82704721cd2c738616d578a81b027cd464b79b47
-[CRYPTOGRAPHYTUBE] Vulnerabilities: Reused R-Value or Script Duplicates Detected
---------------------------------------------------
