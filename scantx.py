@@ -13,6 +13,7 @@ import urllib3
 from urllib3.util.retry import Retry
 import warnings
 from datetime import datetime
+from colorama import init, Fore, Style
 
 # Suppress InsecureRequestWarning
 warnings.filterwarnings('ignore', message='Unverified HTTPS request')
@@ -247,14 +248,27 @@ def check_address_reuse(transaction):
 def get_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-# Modify display_and_save_transaction to be quieter
+# Initialize colorama for cross-platform colored output
+init()
+
 def display_and_save_transaction(transaction_id, vulnerabilities):
+    timestamp = get_timestamp()
+    
+    # Terminal output with colors
+    print(f"\n{Fore.RED}[!] Vulnerable Transaction Detected{Style.RESET_ALL}")
+    print(f"{Fore.YELLOW}[{timestamp}] [{SCRIPT_NAME}]{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}Transaction ID:{Style.RESET_ALL} {transaction_id}")
+    print(f"{Fore.CYAN}Vulnerabilities:{Style.RESET_ALL}")
+    for vuln in vulnerabilities:
+        print(f"  {Fore.RED}• {vuln}{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}{'-' * 50}{Style.RESET_ALL}")
+
+    # File output
     output = (
         f"[{SCRIPT_NAME}] Transaction ID: {transaction_id}\n"
         f"[{SCRIPT_NAME}] Vulnerabilities: {', '.join(vulnerabilities)}\n"
         + "-" * 50
     )
-    # Only save to file, don't print
     with open("vulnerable_transactions.txt", "a") as file:
         file.write(output + "\n")
 

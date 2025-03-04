@@ -7,3 +7,6 @@
 [SABIDZPRO] Transaction ID: 47106ff70bf779efc32230f5ca956d0fc563f35a3c4395d1977fc38995327fe1
 [SABIDZPRO] Vulnerabilities: R-value Reuse Detected
 --------------------------------------------------
+[SABIDZPRO] Transaction ID: 1e10553b43a0e08937ebb89704a6523f9039898d9c885a8903cb6f81ee56c056
+[SABIDZPRO] Vulnerabilities: R-value Reuse Detected
+--------------------------------------------------
