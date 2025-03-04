@@ -240,22 +240,31 @@ if __name__ == "__main__":
             except ValueError as e:
                 print(f"Invalid input: {e}")
         
+        processed_blocks = set()  # Keep track of processed blocks
         all_transactions = []  # Store all transactions for double spend check
+        
         while True:
+            if block_height in processed_blocks:
+                block_height += 1
+                continue
+                
             transactions = fetch_transactions_from_block(block_height)
             print(f"[{SCRIPT_NAME}] Fetched {len(transactions)} transactions from block {block_height}.")
-            all_transactions.extend(transactions)
-
-            found_vulnerabilities = False
+            
+            vuln_found = False
             for tx in transactions:
+                if vuln_found:
+                    break
+                    
                 vulnerabilities = check_vulnerabilities(tx, all_transactions, user_choices)
                 if vulnerabilities:
                     display_and_save_transaction(tx['hash'], vulnerabilities)
-                    found_vulnerabilities = True
+                    vuln_found = True
             
-            if not found_vulnerabilities:
-                block_height += 1  # Move to the next block if no vulnerabilities found
-                print(f"[{SCRIPT_NAME}] No vulnerabilities found. Moving to block {block_height}.")
+            processed_blocks.add(block_height)
+            block_height += 1
+            print(f"[{SCRIPT_NAME}] Moving to block {block_height}.")
             time.sleep(10)  # Fetch new block every 10 seconds
+            
     except KeyboardInterrupt:
         print(f"\n[{SCRIPT_NAME}] Exiting script. Goodbye!")
